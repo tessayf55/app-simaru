@@ -13,8 +13,10 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordConfirmController = TextEditingController();
   final ApiClient _apiClient = ApiClient();
   bool _showPassword = false;
 
@@ -26,10 +28,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ));
 
       Map<String, dynamic> userData = {
-        "name" : "Test",
+        "name" : nameController.text,
         "email": emailController.text,
         "password": passwordController.text,
-        "password_confirmation": passwordController.text,
+        "password_confirmation": passwordConfirmController.text,
       };
 
       dynamic res = await _apiClient.registerUser(userData);
@@ -86,6 +88,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(height: size.height * 0.03),
                     TextFormField(
                       validator: (value) =>
+                          Validator.validateName(value ?? ""),
+                      controller: nameController,
+                      keyboardType: TextInputType.name,
+                      decoration: InputDecoration(
+                        hintText: "Name",
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: size.height * 0.03),
+                    TextFormField(
+                      validator: (value) =>
                           Validator.validateEmail(value ?? ""),
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -106,6 +122,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       keyboardType: TextInputType.visiblePassword,
                       decoration: InputDecoration(
                         hintText: "Password",
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _showPassword = !_showPassword;
+                            });
+                          },
+                          child: Icon(
+                            _showPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: size.height * 0.06),
+                     TextFormField(
+                      obscureText: _showPassword,
+                      validator: (value) =>
+                          Validator.validatePassword(value ?? ""),
+                      controller: passwordConfirmController,
+                      keyboardType: TextInputType.visiblePassword,
+                      decoration: InputDecoration(
+                        hintText: "Confirm Password",
                         suffixIcon: GestureDetector(
                           onTap: () {
                             setState(() {
