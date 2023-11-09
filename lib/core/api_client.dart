@@ -33,6 +33,21 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> getRuanganData() async {
+    try {
+      Response response = await _dio.get(
+        'http://127.0.0.1:81/api/ruangan/all',
+        // queryParameters: {'apikey': ApiSecret.apiKey},
+        // options: Options(
+        //   headers: {'Authorization': 'Bearer $accessToken'},
+        // ),
+      );
+      return response.data;
+    } on DioError catch (e) {
+      return e.response!.data;
+    }
+  }
+
   Future<dynamic> getUserProfileData(String accessToken) async {
     try {
       Response response = await _dio.get(

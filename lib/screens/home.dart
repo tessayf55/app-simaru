@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> logout() async {
     await _apiClient.logout(widget.accesstoken);
+    // ignore: use_build_context_synchronously
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
@@ -124,119 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontSize: 14,
                                     color: Colors.black,
                                     fontWeight: FontWeight.w700)),
-                          ),
-                          const SizedBox(height: 20),
-                          // Container(
-                          //   width: size.width,
-                          //   padding: const EdgeInsets.symmetric(
-                          //       vertical: 5, horizontal: 5),
-                          //   decoration: BoxDecoration(
-                          //       color: const Color(0xFF48484A),
-                          //       borderRadius: BorderRadius.circular(5)),
-                          //   child: Column(
-                          //     mainAxisSize: MainAxisSize.min,
-                          //     mainAxisAlignment: MainAxisAlignment.start,
-                          //     crossAxisAlignment: CrossAxisAlignment.start,
-                          //     children: [
-                          //       const Text('First Name:',
-                          //           style: TextStyle(
-                          //               fontSize: 16, color: Colors.white38)),
-                          //       const SizedBox(height: 7),
-                          //       Text(firstName,
-                          //           style: const TextStyle(
-                          //               fontSize: 19, color: Colors.white)),
-                          //     ],
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 20),
-                          // Container(
-                          //   width: size.width,
-                          //   padding: const EdgeInsets.symmetric(
-                          //       vertical: 5, horizontal: 5),
-                          //   decoration: BoxDecoration(
-                          //       color: const Color(0xFF48484A),
-                          //       borderRadius: BorderRadius.circular(5)),
-                          //   child: Column(
-                          //     mainAxisSize: MainAxisSize.min,
-                          //     mainAxisAlignment: MainAxisAlignment.start,
-                          //     crossAxisAlignment: CrossAxisAlignment.start,
-                          //     children: [
-                          //       const Text('Last Name:',
-                          //           style: TextStyle(
-                          //               fontSize: 16, color: Colors.white38)),
-                          //       const SizedBox(height: 7),
-                          //       Text(lastName,
-                          //           style: const TextStyle(
-                          //               fontSize: 19, color: Colors.white)),
-                          //     ],
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 20),
-                          // Container(
-                          //   width: size.width,
-                          //   padding: const EdgeInsets.symmetric(
-                          //       vertical: 5, horizontal: 5),
-                          //   decoration: BoxDecoration(
-                          //       color: const Color(0xFF48484A),
-                          //       borderRadius: BorderRadius.circular(5)),
-                          //   child: Column(
-                          //     mainAxisSize: MainAxisSize.min,
-                          //     mainAxisAlignment: MainAxisAlignment.start,
-                          //     crossAxisAlignment: CrossAxisAlignment.start,
-                          //     children: [
-                          //       const Text('Birthday:',
-                          //           style: TextStyle(
-                          //               fontSize: 16, color: Colors.white38)),
-                          //       const SizedBox(height: 7),
-                          //       Text(birthDate,
-                          //           style: const TextStyle(
-                          //               fontSize: 19, color: Colors.white)),
-                          //     ],
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 20),
-                          // Container(
-                          //   width: size.width,
-                          //   padding: const EdgeInsets.symmetric(
-                          //       vertical: 5, horizontal: 5),
-                          //   decoration: BoxDecoration(
-                          //       color: const Color(0xFF48484A),
-                          //       borderRadius: BorderRadius.circular(5)),
-                          //   child: Column(
-                          //     mainAxisSize: MainAxisSize.min,
-                          //     mainAxisAlignment: MainAxisAlignment.start,
-                          //     crossAxisAlignment: CrossAxisAlignment.start,
-                          //     children: [
-                          //       const Text('Gender:',
-                          //           style: TextStyle(
-                          //               fontSize: 16, color: Colors.white38)),
-                          //       const SizedBox(height: 7),
-                          //       Text(gender,
-                          //           style: const TextStyle(
-                          //               fontSize: 19, color: Colors.white)),
-                          //     ],
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 20),
-                          TextButton(
-                            onPressed: () async {
-                              await _apiClient.logout(widget.accesstoken);
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const LoginScreen()));
-                            },
-                            style: TextButton.styleFrom(
-                                backgroundColor: Colors.redAccent.shade700,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 15, horizontal: 25)),
-                            child: const Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.white),
-                            ),
                           ),
                         ],
                       ),

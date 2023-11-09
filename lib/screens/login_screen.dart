@@ -1,7 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
-import 'package:appssimaru/screens/home.dart';
+import 'package:appssimaru/screens/home_page.dart';
 import 'package:appssimaru/utils/validator.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => HomeScreen(accesstoken: accessToken)));
+                builder: (context) => HomePage()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error: ${res['Message']}'),

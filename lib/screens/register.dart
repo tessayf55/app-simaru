@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
 import 'package:appssimaru/screens/login_screen.dart';
@@ -27,19 +26,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ));
 
       Map<String, dynamic> userData = {
-        "Email": [
-          {
-            "Type": "Primary",
-            "Value": emailController.text,
-          }
-        ],
-        "Password": passwordController.text,
-        "About": 'I am a new user :smile:',
-        "FirstName": "Test",
-        "LastName": "Account",
-        "FullName": "Test Account",
-        "BirthDate": "10-12-1985",
-        "Gender": "M",
+        "name" : "Test",
+        "email": emailController.text,
+        "password": passwordController.text,
+        "password_confirmation": passwordController.text,
       };
 
       dynamic res = await _apiClient.registerUser(userData);
