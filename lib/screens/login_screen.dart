@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
 import 'package:appssimaru/screens/home_page.dart';
 import 'package:appssimaru/utils/validator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -31,15 +34,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      if (res['ErrorCode'] == null) {
-        String accessToken = res['access_token'];
+      if (res['accessToken'] != null) {
+        // String accessToken = res['accessToken'];
+        SharedPreferences localStorage = await SharedPreferences.getInstance();
+        localStorage.setString('accessToken', res['accessToken']);
+        localStorage.setString('user', json.encode(res['user']));
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => HomePage()));
+            context, MaterialPageRoute(builder: (context) => HomePage()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['Message']}'),
+          content: const Text('Incorrect Email or Password !'),
           backgroundColor: Colors.red.shade300,
         ));
       }

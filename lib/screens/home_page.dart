@@ -1,5 +1,6 @@
-
+import 'package:appssimaru/screens/home.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,6 +11,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentPageIndex = 0;
+  String token = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  _loadToken() async {
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var data = localStorage.getString('accessToken');
+
+    if (data != null) {
+      setState(() {
+        token = data;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,21 +49,17 @@ class _HomePageState extends State<HomePage> {
           ),
           NavigationDestination(
             icon: Icon(Icons.business),
-            label: 'Business',
+            label: 'Master Ruangan',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.school),
             icon: Icon(Icons.school_outlined),
-            label: 'School',
+            label: 'Booking',
           ),
         ],
       ),
       body: <Widget>[
-        Container(
-          color: Colors.red,
-          alignment: Alignment.center,
-          child: const Text('Dashboard'),
-        ),
+        const HomeScreen(),
         Container(
           color: Colors.green,
           alignment: Alignment.center,

@@ -6,14 +6,14 @@ class ApiClient {
   Future<dynamic> registerUser(Map<String, dynamic>? data) async {
     try {
       Response response = await _dio.post(
-          'http://127.0.0.1:81/api/auth/register',
-          data: data,
-          // queryParameters: {'apikey': ApiSecret.apiKey},
-          // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
-          );
+        'http://127.0.0.1:81/api/auth/register',
+        data: data,
+        // queryParameters: {'apikey': ApiSecret.apiKey},
+        // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
+      );
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
@@ -27,9 +27,12 @@ class ApiClient {
         },
         // queryParameters: {'apikey': ApiSecret.apiKey},
       );
+      if (response.data == null) {
+        return response.data['accessToken'] = null;
+      }
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      return throw Exception(e);
     }
   }
 
@@ -43,23 +46,23 @@ class ApiClient {
         // ),
       );
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
   Future<dynamic> getUserProfileData(String accessToken) async {
     try {
       Response response = await _dio.get(
-        'http://127.0.0.1:81/api/auth/user-profile',
+        'http://127.0.0.1:81/api/auth/me',
         // queryParameters: {'apikey': ApiSecret.apiKey},
         options: Options(
           headers: {'Authorization': 'Bearer $accessToken'},
         ),
       );
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
@@ -77,8 +80,8 @@ class ApiClient {
         ),
       );
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
@@ -92,8 +95,8 @@ class ApiClient {
         ),
       );
       return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
+    } catch (e) {
+      throw Exception(e);
     }
   }
 }

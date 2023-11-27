@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
 import 'package:appssimaru/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String accesstoken;
-  const HomeScreen({Key? key, required this.accesstoken}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -12,15 +12,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiClient _apiClient = ApiClient();
+  String accesstoken = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  _loadToken() async {
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var data = localStorage.getString('accessToken');
+
+    if (data != null) {
+      setState(() {
+        accesstoken = data;
+      });
+    }
+  }
 
   Future<Map<String, dynamic>> getUserData() async {
     dynamic userRes;
-    userRes = await _apiClient.getUserProfileData(widget.accesstoken);
+    userRes = await _apiClient.getUserProfileData(accesstoken);
     return userRes;
   }
 
   Future<void> logout() async {
-    await _apiClient.logout(widget.accesstoken);
+    await _apiClient.logout(accesstoken);
     // ignore: use_build_context_synchronously
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -48,11 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 }
-                String name = snapshot.data!['name'];
+                String name = snapshot.data!['user']['name'];
                 // String firstName = snapshot.data!['FirstName'];
                 // String lastName = snapshot.data!['LastName'];
                 // String birthDate = snapshot.data!['BirthDate'];
-                String email = snapshot.data!['Email'][0]['Value'];
+                String email = snapshot.data!['user']['email'];
                 // String gender = snapshot.data!['Gender'];
 
                 return Container(
