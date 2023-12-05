@@ -1,4 +1,5 @@
 import 'package:appssimaru/screens/home.dart';
+import 'package:appssimaru/screens/ruangan/ruangan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,11 +61,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: <Widget>[
         const HomeScreen(),
-        Container(
-          color: Colors.green,
-          alignment: Alignment.center,
-          child: const Text('Master Ruangan'),
-        ),
+        RuanganScreen(),
         Container(
           color: Colors.blue,
           alignment: Alignment.center,
