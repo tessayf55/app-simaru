@@ -31,7 +31,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         "name" : nameController.text,
         "email": emailController.text,
         "password": passwordController.text,
-        "password_confirmation": passwordConfirmController.text,
+        "password_confirmation": passwordConfirmController.text,        
+        "role": "user",
       };
 
       dynamic res = await _apiClient.registerUser(userData);

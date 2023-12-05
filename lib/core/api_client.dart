@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 
 class ApiClient {
@@ -88,17 +91,16 @@ class ApiClient {
   Future<dynamic> getRuanganData(String accessToken) async {
     try {
       Response response = await _dio.get(
-        'http://127.0.0.1:81/api/ruangan/all',
+        'http://127.0.0.1:81/api/ruangans/all',
         // queryParameters: {'apikey': ApiSecret.apiKey},
         options: Options(
           headers: {
             'Authorization': 'Bearer $accessToken',
-            'Access-Control-Allow-Methods': 'GET, POST',
-            'Access-Control-Allow-Headers': 'X-Requested-With'
           },
         ),
       );
-      return response.data;
+      
+      return response;
     } catch (e) {
       throw Exception(e);
     }
