@@ -43,8 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
             context, MaterialPageRoute(builder: (context) => HomePage()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Incorrect Email or Password !'),
-          backgroundColor: Colors.red.shade300,
+          content: const Text('Invalid Credential'),
+          backgroundColor: Colors.red.shade400,
         ));
       }
     }
