@@ -73,7 +73,7 @@ class _RuanganEditScreenState extends State<RuanganEditScreen> {
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         var msg = jsonDecode(res.body);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(
           content: Text('${msg['message'].toString()}'),
           backgroundColor: Colors.green.shade300,
         ));
