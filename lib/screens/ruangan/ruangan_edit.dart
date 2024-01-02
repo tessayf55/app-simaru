@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
+// ignore: must_be_immutable
 class RuanganEditScreen extends StatefulWidget {
   // const RuanganEditScreen({Key? key}) : super(key: key);
 
@@ -32,14 +33,12 @@ class _RuanganEditScreenState extends State<RuanganEditScreen> {
   void initState() {
     super.initState();
 
-    if (widget.ruangan != null) {
-      ruanganController.text = widget.ruangan.nama_ruangan;
-      kapasitasController.text = widget.ruangan.kapasitas;
-      keteranganController.text = widget.ruangan.keterangan;
-      setState(() {
-        id = widget.ruangan.id;
-      });
-    }
+    ruanganController.text = widget.ruangan.nama_ruangan;
+    kapasitasController.text = widget.ruangan.kapasitas;
+    keteranganController.text = widget.ruangan.keterangan;
+    setState(() {
+      id = widget.ruangan.id;
+    });
     _loadToken();
   }
 
