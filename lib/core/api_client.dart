@@ -1,20 +1,26 @@
 import 'dart:convert';
-import 'dart:math';
+import 'package:appssimaru/model/ruangan.dart';
+import 'package:http/http.dart' show Client;
 
-import 'package:dio/dio.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
-  final Dio _dio = Dio();
+  Client client = Client();
 
   Future<dynamic> registerUser(Map<String, dynamic>? data) async {
     try {
-      Response response = await _dio.post(
-        'http://127.0.0.1:81/api/auth/register',
-        data: data,
+      final response = await client.post(
+        Uri.parse("https://simaru.amisbudi.cloud/api/auth/register"),
+        body: data,
         // queryParameters: {'apikey': ApiSecret.apiKey},
         // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
       );
-      return response.data;
+      if (response.statusCode == 200) {
+        print(response.body[0].toString());
+        return ruanganFromJson(response.body);
+      } else {
+        return null;
+      }
     } catch (e) {
       throw Exception(e);
     }
@@ -22,85 +28,142 @@ class ApiClient {
 
   Future<dynamic> login(String email, String password) async {
     try {
-      Response response = await _dio.post(
-        'http://127.0.0.1:81/api/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-        },
-        // queryParameters: {'apikey': ApiSecret.apiKey},
-      );
-      if (response.data == null) {
-        return response.data['accessToken'] = null;
+      final response = await client.post(
+          Uri.parse('https://simaru.amisbudi.cloud/api/auth/login'),
+          body: {
+            'email': email,
+            'password': password,
+          });
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
       }
-      return response.data;
     } catch (e) {
       return throw Exception(e);
     }
   }
 
   Future<dynamic> getUserProfileData(String accessToken) async {
-    try {
-      Response response = await _dio.get(
-        'http://127.0.0.1:81/api/auth/me',
-        // queryParameters: {'apikey': ApiSecret.apiKey},
-        options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
-      return response.data;
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
+    // SharedPreferences localStorage = await SharedPreferences.getInstance();
+    // var accessToken = localStorage.getString('accessToken');
+    // try {
+    final response =
+        await client.get(Uri.parse('https://simaru.amisbudi.cloud/api/auth/me'),
+            // queryParameters: {'apikey': ApiSecret.apiKey},
+            headers: {'Authorization': 'Bearer $accessToken'});
 
-  Future<dynamic> updateUserProfile({
-    required String accessToken,
-    required Map<String, dynamic> data,
-  }) async {
-    try {
-      Response response = await _dio.put(
-        'http://127.0.0.1:81/api/auth/user-profile',
-        data: data,
-        // queryParameters: {'apikey': ApiSecret.apiKey},
-        options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
-      return response.data;
-    } catch (e) {
-      throw Exception(e);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return null;
     }
+    // } catch (e) {
+    //   throw Exception(e);
+    // }
   }
 
   Future<dynamic> logout(String accessToken) async {
     try {
-      Response response = await _dio.get(
-        'http://127.0.0.1:81/api/auth/logout',
-        // queryParameters: {'apikey': ApiSecret.apiKey},
-        options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
-      return response.data;
+      final response = await client
+          .get(Uri.parse('https://simaru.amisbudi.cloud/api/auth/logout'),
+              // queryParameters: {'apikey': ApiSecret.apiKey},
+              headers: {'Authorization': 'Bearer $accessToken'});
+      if (response.statusCode == 200) {
+        return ruanganFromJson(response.body);
+      } else {
+        return null;
+      }
     } catch (e) {
       throw Exception(e);
     }
   }
 
-  Future<dynamic> getRuanganData(String accessToken) async {
+  Future<List<Ruangan>> getRuanganData(String accessToken) async {
     try {
-      Response response = await _dio.get(
-        'http://127.0.0.1:81/api/ruangans/all',
+      final response = await client.get(
+        Uri.parse('https://simaru.amisbudi.cloud/api/ruangans/all'),
         // queryParameters: {'apikey': ApiSecret.apiKey},
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'content-type': 'application/json'
+        },
       );
-      
+
+      if (response.statusCode == 200) {
+        return ruanganFromJson(response.body);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<dynamic> addRuangan(
+      String accessToken, Map<String, dynamic>? data) async {
+    try {
+      final response = await client.post(
+        Uri.parse("https://simaru.amisbudi.cloud/api/ruangans/create"),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'content-type': 'application/json'
+        },
+        body: jsonEncode(data),
+        // queryParameters: {'apikey': ApiSecret.apiKey},
+        // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
+      );
+      // if (response.statusCode == 200) {
+      //   return response;
+      // } else {
       return response;
+      // }
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<dynamic> delRuangan(String accessToken, dynamic id) async {
+    try {
+      final response = await client.delete(
+        Uri.parse("https://simaru.amisbudi.cloud/api/ruangans/$id/delete"),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'content-type': 'application/json'
+        },
+        // body: jsonEncode(data),
+        // queryParameters: {'apikey': ApiSecret.apiKey},
+        // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<dynamic> updateRuangan(
+      String accessToken, Map<String, dynamic>? data, dynamic id) async {
+    try {
+      final response = await client.post(
+        Uri.parse("https://simaru.amisbudi.cloud/api/ruangans/$id/update"),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'content-type': 'application/json'
+        },
+        body: jsonEncode(data),
+        // queryParameters: {'apikey': ApiSecret.apiKey},
+        // options: Options(headers: {'X-LoginRadius-Sott': ApiSecret.sott})
+      );
+      // if (response.statusCode == 200) {
+      //   return response;
+      // } else {
+      return response;
+      // }
     } catch (e) {
       throw Exception(e);
     }

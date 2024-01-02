@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:appssimaru/screens/home_page.dart';
+import 'package:appssimaru/model/ruangan.dart';
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
 import 'package:appssimaru/screens/login_screen.dart';
@@ -9,24 +8,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
-class RuanganAddScreen extends StatefulWidget {
-  const RuanganAddScreen({Key? key}) : super(key: key);
+class RuanganEditScreen extends StatefulWidget {
+  // const RuanganEditScreen({Key? key}) : super(key: key);
+
+  Ruangan ruangan;
+
+  RuanganEditScreen({required this.ruangan});
 
   @override
-  State<RuanganAddScreen> createState() => _RuanganAddScreenState();
+  State<RuanganEditScreen> createState() => _RuanganEditScreenState();
 }
 
-class _RuanganAddScreenState extends State<RuanganAddScreen> {
+class _RuanganEditScreenState extends State<RuanganEditScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController ruanganController = TextEditingController();
   final TextEditingController kapasitasController = TextEditingController();
   final TextEditingController keteranganController = TextEditingController();
   final ApiClient _apiClient = ApiClient();
   String accesstoken = '';
+  int id = 0;
 
   @override
   void initState() {
     super.initState();
+
+    if (widget.ruangan != null) {
+      ruanganController.text = widget.ruangan.nama_ruangan;
+      kapasitasController.text = widget.ruangan.kapasitas;
+      keteranganController.text = widget.ruangan.keterangan;
+      setState(() {
+        id = widget.ruangan.id;
+      });
+    }
     _loadToken();
   }
 
@@ -54,13 +67,14 @@ class _RuanganAddScreenState extends State<RuanganAddScreen> {
         "keterangan": keteranganController.text
       };
 
-      final res = await _apiClient.addRuangan(accesstoken, ruanganData);
+      final res = await _apiClient.updateRuangan(
+          accesstoken, ruanganData, widget.ruangan.id);
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         var msg = jsonDecode(res.body);
-        ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('${msg['message'].toString()}'),
           backgroundColor: Colors.green.shade300,
         ));
@@ -109,7 +123,7 @@ class _RuanganAddScreenState extends State<RuanganAddScreen> {
                     //   SizedBox(height: size.height * 0.08),
                     const Center(
                       child: Text(
-                        "Tambah Ruangan",
+                        "Edit Ruangan",
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,

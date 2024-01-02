@@ -27,14 +27,14 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.green.shade300,
       ));
 
-      dynamic res = await _apiClient.login(
+      final res = await _apiClient.login(
         emailController.text,
         passwordController.text,
       );
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      if (res['accessToken'] != null) {
+      if (res != null) {
         // String accessToken = res['accessToken'];
         SharedPreferences localStorage = await SharedPreferences.getInstance();
         localStorage.setString('accessToken', res['accessToken']);
