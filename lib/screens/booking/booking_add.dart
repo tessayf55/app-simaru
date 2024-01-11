@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:appssimaru/core/api_client.dart';
 import 'package:appssimaru/screens/login_screen.dart';
@@ -7,19 +8,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
-class RuanganAddScreen extends StatefulWidget {
-  const RuanganAddScreen({Key? key}) : super(key: key);
+class BookingAddScreen extends StatefulWidget {
+  const BookingAddScreen({Key? key}) : super(key: key);
 
   @override
-  State<RuanganAddScreen> createState() => _RuanganAddScreenState();
+  State<BookingAddScreen> createState() => _BookingAddScreenState();
 }
 
-class _RuanganAddScreenState extends State<RuanganAddScreen>
+class _BookingAddScreenState extends State<BookingAddScreen>
     with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController ruanganController = TextEditingController();
-  final TextEditingController kapasitasController = TextEditingController();
-  final TextEditingController keteranganController = TextEditingController();
+  final TextEditingController userIdController = TextEditingController();
+  final TextEditingController ruanganIdController = TextEditingController();
+  TextEditingController? startBookController;
+  TextEditingController? endBookController;
   final ApiClient _apiClient = ApiClient();
   String accessToken = '';
   late AnimationController _animationController;
@@ -29,6 +31,8 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
   void initState() {
     super.initState();
     _loadToken();
+    startBookController = TextEditingController();
+    endBookController = TextEditingController();
 
     _animationController =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
@@ -50,20 +54,21 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
     }
   }
 
-  Future<void> addRuangan() async {
+  Future<void> addBooking() async {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
         backgroundColor: Colors.green.shade300,
       ));
 
-      Map<String, dynamic> ruanganData = {
-        "nama_ruangan": ruanganController.text,
-        "kapasitas": kapasitasController.text,
-        "keterangan": keteranganController.text,
+      Map<String, dynamic> bookingData = {
+        "user_id": userIdController.text,
+        "ruangan_id": ruanganIdController.text,
+        "start_book": startBookController!.text,
+        "end_book": endBookController!.text,
       };
 
-      final res = await _apiClient.addRuangan(accessToken, ruanganData);
+      final res = await _apiClient.addBooking(accessToken, bookingData);
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -73,14 +78,10 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
           content: Text(msg['message'].toString()),
           backgroundColor: Colors.green.shade300,
         ));
-
-        // Sinyalkan ke RuanganScreen bahwa penambahan berhasil
-        Navigator.pop(_scaffoldState.currentState!.context, true);
+        Navigator.pop(_scaffoldState.currentState!.context);
       } else if (res.statusCode == 401) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
       } else if (res.statusCode == 500) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Error: Internal Server Error 500'),
@@ -92,6 +93,32 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
           backgroundColor: Colors.red.shade300,
         ));
       }
+    }
+  }
+
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != DateTime.now()) {
+      await _selectTime(context, controller, picked);
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context,
+      TextEditingController controller, DateTime selectedDate) async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      DateTime selectedDateTime = DateTime(selectedDate.year,
+          selectedDate.month, selectedDate.day, picked.hour, picked.minute);
+      controller.text = selectedDateTime.toIso8601String();
     }
   }
 
@@ -117,14 +144,6 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 3,
-                      blurRadius: 7,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
                 child: SingleChildScrollView(
                   child: Column(
@@ -132,7 +151,7 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                     children: <Widget>[
                       const Center(
                         child: Text(
-                          "Tambah Ruangan",
+                          "Tambah Booking",
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -144,22 +163,10 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                       TextFormField(
                         validator: (value) =>
                             Validator.validateText(value ?? ""),
-                        controller: ruanganController,
+                        controller: userIdController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
-                          hintText: "Nama Ruangan",
-                          isDense: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: size.height * 0.03),
-                      TextFormField(
-                        controller: kapasitasController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: "Kapasitas Ruangan",
+                          hintText: "User ID",
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -170,21 +177,51 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                       TextFormField(
                         validator: (value) =>
                             Validator.validateText(value ?? ""),
-                        controller: keteranganController,
+                        controller: ruanganIdController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
-                          hintText: "Keterangan",
+                          hintText: "Ruangan ID",
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
+                      SizedBox(height: size.height * 0.03),
+                      TextFormField(
+                        controller: startBookController,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: "Start Booking",
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onTap: () async {
+                          await _selectDate(context, startBookController!);
+                        },
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      TextFormField(
+                        controller: endBookController,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: "End Booking",
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onTap: () async {
+                          await _selectDate(context, endBookController!);
+                        },
+                      ),
                       SizedBox(height: size.height * 0.06),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: addRuangan,
+                          onPressed: addBooking,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             shape: RoundedRectangleBorder(
@@ -196,7 +233,7 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                             ),
                           ),
                           child: const Text(
-                            "Simpan",
+                            "Save",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

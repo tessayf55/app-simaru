@@ -1,22 +1,35 @@
-import 'package:appssimaru/screens/home.dart';
-import 'package:appssimaru/screens/ruangan/ruangan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'booking/booking_screen.dart';
+import 'home.dart';
+import 'ruangan/ruangan_screen.dart';
+
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeInAnimation;
+
   int currentPageIndex = 0;
   String token = '';
 
   @override
   void initState() {
     super.initState();
+
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+
+    _fadeInAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+
     _loadToken();
   }
 
@@ -27,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     if (data != null) {
       setState(() {
         token = data;
+        _animationController.forward();
       });
     }
   }
@@ -34,40 +48,39 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentPageIndex,
+        onTap: (index) {
           setState(() {
             currentPageIndex = index;
           });
         },
-        // indicatorColor: Colors.amber[800],
-        selectedIndex: currentPageIndex,
-        destinations: const <Widget>[
-          NavigationDestination(
-            selectedIcon: Icon(Icons.home),
-            icon: Icon(Icons.home_outlined),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
             label: 'Home',
           ),
-          NavigationDestination(
+          BottomNavigationBarItem(
             icon: Icon(Icons.business),
             label: 'Master Ruangan',
           ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.school),
-            icon: Icon(Icons.school_outlined),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.school),
             label: 'Booking',
           ),
         ],
       ),
-      body: <Widget>[
-        const HomeScreen(),
-        RuanganScreen(),
-        Container(
-          color: Colors.blue,
-          alignment: Alignment.center,
-          child: const Text('Booking Ruangan'),
+      body: FadeTransition(
+        opacity: _fadeInAnimation,
+        child: IndexedStack(
+          index: currentPageIndex,
+          children: const <Widget>[
+            HomeScreen(),
+            RuanganScreen(),
+            BookingScreen(),
+          ],
         ),
-      ][currentPageIndex],
+      ),
     );
   }
 }

@@ -6,6 +6,8 @@ import 'package:appssimaru/screens/home_page.dart';
 import 'package:appssimaru/utils/validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'register.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -13,18 +15,35 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeInAnimation;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final ApiClient _apiClient = ApiClient();
   bool _showPassword = false;
 
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+
+    _fadeInAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+
+    _animationController.forward();
+  }
+
   Future<void> login() async {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
-        backgroundColor: Colors.green.shade300,
+        backgroundColor: Colors.blue.shade300,
       ));
 
       final res = await _apiClient.login(
@@ -35,12 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       if (res != null) {
-        // String accessToken = res['accessToken'];
         SharedPreferences localStorage = await SharedPreferences.getInstance();
         localStorage.setString('accessToken', res['accessToken']);
         localStorage.setString('user', json.encode(res['user']));
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HomePage()));
+
+        // Animasi untuk pindah ke HomePage
+        _animationController.reverse().then((_) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Invalid Credential'),
@@ -54,17 +78,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Scaffold(
-        backgroundColor: Colors.blueGrey[200],
-        body: Form(
-          key: _formKey,
-          child: Stack(children: [
-            SizedBox(
+      backgroundColor: Colors.blue.shade900,
+      body: Form(
+        key: _formKey,
+        child: Stack(children: [
+          FadeTransition(
+            opacity: _fadeInAnimation,
+            child: SizedBox(
               width: size.width,
               height: size.height,
               child: Align(
                 alignment: Alignment.center,
                 child: Container(
-                  width: size.width * 0.85,
+                  width: size.width * 0.8,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                   decoration: BoxDecoration(
@@ -77,31 +103,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          // SizedBox(height: size.height * 0.08),
                           const Center(
                             child: Text(
-                              "Login",
+                              "SIMARU",
                               style: TextStyle(
-                                fontSize: 30,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 13, 71, 161),
                               ),
                             ),
                           ),
-                          SizedBox(height: size.height * 0.06),
+                          SizedBox(height: size.height * 0.04),
                           TextFormField(
                             controller: emailController,
                             validator: (value) {
                               return Validator.validateEmail(value ?? "");
                             },
                             decoration: InputDecoration(
-                              hintText: "Email",
+                              labelText: "Email",
+                              labelStyle: TextStyle(
+                                color: Colors.blue.shade900,
+                              ),
                               isDense: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                           ),
-                          SizedBox(height: size.height * 0.03),
+                          SizedBox(height: size.height * 0.02),
                           TextFormField(
                             obscureText: _showPassword,
                             controller: passwordController,
@@ -109,6 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               return Validator.validatePassword(value ?? "");
                             },
                             decoration: InputDecoration(
+                              labelText: "Password",
+                              labelStyle: TextStyle(
+                                color: Colors.blue.shade900,
+                              ),
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   setState(
@@ -118,10 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _showPassword
                                       ? Icons.visibility
                                       : Icons.visibility_off,
-                                  color: Colors.grey,
+                                  color: Colors.blue.shade900,
                                 ),
                               ),
-                              hintText: "Password",
                               isDense: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -136,14 +168,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: ElevatedButton(
                                   onPressed: login,
                                   style: ElevatedButton.styleFrom(
-                                      primary: Colors.indigo,
+                                      backgroundColor: Colors.blue.shade900,
                                       shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(10)),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 40, vertical: 15)),
                                   child: const Text(
-                                    "Login",
+                                    "Masuk",
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -153,6 +185,27 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
+                          SizedBox(height: size.height * 0.02),
+                          Align(
+                            alignment: Alignment.center,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const RegisterScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Buat Akun",
+                                style: TextStyle(
+                                  color: Colors.blue.shade900,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -160,7 +213,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          ]),
-        ));
+          ),
+        ]),
+      ),
+    );
   }
 }

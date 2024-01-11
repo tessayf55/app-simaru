@@ -6,24 +6,27 @@ class Ruangan {
   String keterangan;
   String created_at;
   String updated_at;
-  String kapasitas;
+  int kapasitas; // Tetapkan tipe data sebagai int
 
-  Ruangan(
-      {this.id = 0,
-      required this.nama_ruangan,
-      required this.keterangan,
-      required this.kapasitas,
-      required this.created_at,
-      required this.updated_at});
+  Ruangan({
+    this.id = 0,
+    required this.nama_ruangan,
+    required this.keterangan,
+    required this.kapasitas,
+    required this.created_at,
+    required this.updated_at,
+  });
 
   factory Ruangan.fromJson(Map<String, dynamic> map) {
     return Ruangan(
-        id: map["id"],
-        nama_ruangan: map["nama_ruangan"],
-        keterangan: map["keterangan"],
-        kapasitas: map["kapasitas"],
-        created_at: map["created_at"],
-        updated_at: map["updated_at"]);
+      id: map["id"],
+      nama_ruangan: map["nama_ruangan"],
+      keterangan: map["keterangan"],
+      kapasitas:
+          int.parse(map["kapasitas"].toString()), // Ubah ke tipe data int
+      created_at: map["created_at"],
+      updated_at: map["updated_at"],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -33,13 +36,13 @@ class Ruangan {
       "keterangan": keterangan,
       "kapasitas": kapasitas,
       "created_at": created_at,
-      "updated_at": updated_at
+      "updated_at": updated_at,
     };
   }
 
   @override
   String toString() {
-    return 'Ruangan{id: $id, nama_ruangan: $nama_ruangan, keterangan: $keterangan, keterangan: $keterangan, created_at: $created_at, "updated_at": $updated_at }';
+    return 'Ruangan{id: $id, nama_ruangan: $nama_ruangan, keterangan: $keterangan, kapasitas: $kapasitas, created_at: $created_at, updated_at: $updated_at}';
   }
 }
 

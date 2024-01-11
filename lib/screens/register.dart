@@ -13,40 +13,64 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController passwordConfirmController = TextEditingController();
+  final TextEditingController passwordConfirmController =
+      TextEditingController();
   final ApiClient _apiClient = ApiClient();
   bool _showPassword = false;
+  bool _isProcessing = false;
 
   Future<void> registerUsers() async {
+    if (_isProcessing) return;
+
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      setState(() {
+        _isProcessing = true;
+      });
+
+      _scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
         content: const Text('Processing Data'),
-        backgroundColor: Colors.green.shade300,
+        backgroundColor: Colors.blue.shade300,
       ));
 
       Map<String, dynamic> userData = {
-        "name" : nameController.text,
+        "name": nameController.text,
         "email": emailController.text,
         "password": passwordController.text,
-        "password_confirmation": passwordConfirmController.text,        
+        "password_confirmation": passwordConfirmController.text,
         "role": "user",
       };
 
-      dynamic res = await _apiClient.registerUser(userData);
+      try {
+        dynamic res = await _apiClient.registerUser(userData);
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        _scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
 
-      if (res['ErrorCode'] == null) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['Message']}'),
-          backgroundColor: Colors.red.shade300,
-        ));
+        if (res['ErrorCode'] == null) {
+          // Pindah ke halaman LoginScreen setelah registrasi berhasil
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        } else {
+          _scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(
+            content: Text('Error: ${res['Message']}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      } catch (error) {
+        print('Error during registration: $error');
+        // Handle the error accordingly
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
       }
     }
   }
@@ -55,16 +79,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.blueGrey[200],
+      key: _scaffoldMessengerKey,
+      backgroundColor: Colors.blue.shade900,
       body: Form(
         key: _formKey,
         child: SizedBox(
           width: size.width,
           height: size.height,
-          child: Align(
-            alignment: Alignment.center,
+          child: Center(
             child: Container(
-              width: size.width * 0.85,
+              width: size.width * 0.8,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -74,26 +98,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    //   SizedBox(height: size.height * 0.08),
                     const Center(
                       child: Text(
-                        "Register",
+                        "Buat Akun Baru",
                         style: TextStyle(
-                          fontSize: 30,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 13, 71, 161),
                         ),
                       ),
                     ),
                     SizedBox(height: size.height * 0.05),
-
-                    SizedBox(height: size.height * 0.03),
                     TextFormField(
-                      validator: (value) =>
-                          Validator.validateName(value ?? ""),
+                      validator: (value) => Validator.validateName(value ?? ""),
                       controller: nameController,
                       keyboardType: TextInputType.name,
                       decoration: InputDecoration(
-                        hintText: "Name",
+                        labelText: "Nama",
+                        labelStyle: TextStyle(
+                          color: Colors.blue.shade900,
+                        ),
                         isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -107,7 +131,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: "Email",
+                        labelText: "Email",
+                        labelStyle: TextStyle(
+                          color: Colors.blue.shade900,
+                        ),
                         isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -122,7 +149,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: passwordController,
                       keyboardType: TextInputType.visiblePassword,
                       decoration: InputDecoration(
-                        hintText: "Password",
+                        labelText: "Password",
+                        labelStyle: TextStyle(
+                          color: Colors.blue.shade900,
+                        ),
                         suffixIcon: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -142,15 +172,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: size.height * 0.06),
-                     TextFormField(
+                    SizedBox(height: size.height * 0.03),
+                    TextFormField(
                       obscureText: _showPassword,
                       validator: (value) =>
                           Validator.validatePassword(value ?? ""),
                       controller: passwordConfirmController,
                       keyboardType: TextInputType.visiblePassword,
                       decoration: InputDecoration(
-                        hintText: "Confirm Password",
+                        labelText: "Ulangi Password",
+                        labelStyle: TextStyle(
+                          color: Colors.blue.shade900,
+                        ),
                         suffixIcon: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -176,30 +209,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: ElevatedButton(
                         onPressed: registerUsers,
                         style: ElevatedButton.styleFrom(
-                            primary: Colors.indigo,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 40, vertical: 15)),
+                          backgroundColor: Colors.blue.shade900,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
+                        ),
                         child: const Text(
-                          "Register",
+                          "Daftar",
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-
+                    SizedBox(
+                      height: size.height * 0.02,
+                    ),
                     SizedBox(
                       width: double.infinity,
                       child: TextButton(
-                          onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginScreen())),
-                          child: const Text('Login')),
-                    )
+                        onPressed: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginScreen())),
+                        child: const Text(
+                          'Sudah punya akun? Masuk',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 13, 71, 161),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

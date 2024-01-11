@@ -1,33 +1,42 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:appssimaru/model/booking.dart';
 import 'package:appssimaru/core/api_client.dart';
-import 'package:appssimaru/screens/login_screen.dart';
-import 'package:appssimaru/utils/validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:appssimaru/utils/validator.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
-class RuanganAddScreen extends StatefulWidget {
-  const RuanganAddScreen({Key? key}) : super(key: key);
+class BookingEditScreen extends StatefulWidget {
+  final Booking booking;
+
+  BookingEditScreen({Key? key, required this.booking}) : super(key: key);
 
   @override
-  State<RuanganAddScreen> createState() => _RuanganAddScreenState();
+  State<BookingEditScreen> createState() => _BookingEditScreenState();
 }
 
-class _RuanganAddScreenState extends State<RuanganAddScreen>
+class _BookingEditScreenState extends State<BookingEditScreen>
     with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController ruanganController = TextEditingController();
-  final TextEditingController kapasitasController = TextEditingController();
-  final TextEditingController keteranganController = TextEditingController();
+  final TextEditingController userIdController = TextEditingController();
+  final TextEditingController ruanganIdController = TextEditingController();
+  TextEditingController startBookController = TextEditingController();
+  TextEditingController endBookController = TextEditingController();
   final ApiClient _apiClient = ApiClient();
   String accessToken = '';
+  int id = 0;
   late AnimationController _animationController;
   late Animation<double> _fadeInAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    userIdController.text = widget.booking.userId.toString();
+    ruanganIdController.text = widget.booking.ruanganId.toString();
+    startBookController.text = widget.booking.startBook.toIso8601String();
+    endBookController.text = widget.booking.endBook.toIso8601String();
     _loadToken();
 
     _animationController =
@@ -50,20 +59,22 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
     }
   }
 
-  Future<void> addRuangan() async {
+  Future<void> updateBooking() async {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
         backgroundColor: Colors.green.shade300,
       ));
 
-      Map<String, dynamic> ruanganData = {
-        "nama_ruangan": ruanganController.text,
-        "kapasitas": kapasitasController.text,
-        "keterangan": keteranganController.text,
+      Map<String, dynamic> bookingData = {
+        "user_id": widget.booking.userId,
+        "ruangan_id": widget.booking.ruanganId,
+        "start_book": startBookController.text,
+        "end_book": endBookController.text,
       };
 
-      final res = await _apiClient.addRuangan(accessToken, ruanganData);
+      final res = await _apiClient.updateBooking(
+          accessToken, bookingData, widget.booking.id);
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -74,13 +85,10 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
           backgroundColor: Colors.green.shade300,
         ));
 
-        // Sinyalkan ke RuanganScreen bahwa penambahan berhasil
-        Navigator.pop(_scaffoldState.currentState!.context, true);
+        // Sinyalkan ke BookingScreen bahwa edit berhasil
+        Navigator.pop(context, true);
       } else if (res.statusCode == 401) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        // Handle unauthorized access
       } else if (res.statusCode == 500) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Error: Internal Server Error 500'),
@@ -93,6 +101,44 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
         ));
       }
     }
+  }
+
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      await _selectTime(context, controller, picked);
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context,
+      TextEditingController controller, DateTime selectedDate) async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      DateTime selectedDateTime = DateTime(selectedDate.year,
+          selectedDate.month, selectedDate.day, picked.hour, picked.minute);
+      controller.text = selectedDateTime.toIso8601String();
+    }
+  }
+
+  void _onUserIdChanged(String value) {
+    setState(() {
+      widget.booking.userId = int.parse(value);
+    });
+  }
+
+  void _onRuanganIdChanged(String value) {
+    setState(() {
+      widget.booking.ruanganId = int.parse(value);
+    });
   }
 
   @override
@@ -117,14 +163,6 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 3,
-                      blurRadius: 7,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
                 child: SingleChildScrollView(
                   child: Column(
@@ -132,7 +170,7 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                     children: <Widget>[
                       const Center(
                         child: Text(
-                          "Tambah Ruangan",
+                          "Edit Booking",
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -140,26 +178,14 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                         ),
                       ),
                       SizedBox(height: size.height * 0.05),
-                      SizedBox(height: size.height * 0.03),
                       TextFormField(
                         validator: (value) =>
                             Validator.validateText(value ?? ""),
-                        controller: ruanganController,
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(
-                          hintText: "Nama Ruangan",
-                          isDense: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: size.height * 0.03),
-                      TextFormField(
-                        controller: kapasitasController,
+                        controller: userIdController,
                         keyboardType: TextInputType.number,
+                        onChanged: _onUserIdChanged,
                         decoration: InputDecoration(
-                          hintText: "Kapasitas Ruangan",
+                          labelText: "User ID",
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -170,21 +196,55 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                       TextFormField(
                         validator: (value) =>
                             Validator.validateText(value ?? ""),
-                        controller: keteranganController,
-                        keyboardType: TextInputType.text,
+                        controller: ruanganIdController,
+                        keyboardType: TextInputType.number,
+                        onChanged: _onRuanganIdChanged,
                         decoration: InputDecoration(
-                          hintText: "Keterangan",
+                          labelText: "Ruangan ID",
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      // TextFormField for Start Booking
+                      TextFormField(
+                        controller: startBookController,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: "Start Book",
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onTap: () async {
+                          await _selectDate(context, startBookController);
+                        },
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      // TextFormField for End Booking
+                      TextFormField(
+                        controller: endBookController,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: "End Book",
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onTap: () async {
+                          await _selectDate(context, endBookController);
+                        },
                       ),
                       SizedBox(height: size.height * 0.06),
+                      // ElevatedButton for Save
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: addRuangan,
+                          onPressed: updateBooking,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             shape: RoundedRectangleBorder(
@@ -196,7 +256,7 @@ class _RuanganAddScreenState extends State<RuanganAddScreen>
                             ),
                           ),
                           child: const Text(
-                            "Simpan",
+                            "Save",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
